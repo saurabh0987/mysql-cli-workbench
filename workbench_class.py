@@ -1,4 +1,4 @@
-import mysql.connector
+import pyodbc
 
 class Column:
     def __init__(self,name=None,datatype=None,length=0,options=["N","Y","N"]):
@@ -31,7 +31,13 @@ class Workbench:
         self.connectToDB()
 
     def connectToDB(self):
-        self.conn=mysql.connector.connect(user=self.user,host=self.host,password=self.password,database=self.databaseName)
+        self.conn=pyodbc.connect(
+            'DRIVER=MySQL ODBC 8.0 ANSI Driver;'
+            'SERVER='+self.host+';'
+            'DATABASE='+self.databaseName+';'
+            'UID='+self.user+';'
+            'PWD='+self.password+';'
+            'charset=utf8mb4;')
     
     def selectFromTable(self,tablename,attribute,limit,conditions,operations):
         self.tablename=tablename;self.attribute=attribute;self.limit=limit;self.conditions=conditions;self.operations=operations
@@ -154,9 +160,30 @@ class Workbench:
         cursor = self.conn.cursor()
         cursor.execute(query)
         self.conn.commit()
+    
+    def alter(self,tablename,operation,columns=[],columnname=" "):
+        query="ALTER TABLE "+tablename+" "+operation
+        if operation=="add" or operation =="ADD":
+            print(2)
+            query+=" "+columns[0].final
+        elif operation=="drop" or operation == "DROP":
+            query+=" "+"COLUMN "+columnname
+        else:
+            query+=" "+"COLUMN "+columns[0].final
+        print(query)
+        cursor = self.conn.cursor()
+        cursor.execute(query)
+        self.conn.commit()
+    
+    def custom(self):
+        query=input("Enter Custom Query\n")
+        cursor = self.conn.cursor()
+        cursor.execute(query)
+        self.conn.commit()
 
 
 wb=Workbench("employees")
+
 '''while True:
     try:
         wb.insertvalues(tablename="emp_data",intocolumns=["Emp_id","salary","first_name","designation"],values=["19","800","saurabhdddddddddddddddddddddddddddddddddddddddddddddddddddddddd","Sd"])
@@ -167,8 +194,8 @@ wb=Workbench("employees")
 #wb.update(tablename="emp_data",ColmValuesToSet=[["salary","45000"],["designation","Teamlead"]],conditions=[["Emp_id","3"]],operations="and")
 #wb.delete(tablename="emp_data",conditions=[["Emp_id","7"],["Emp_id","8"]],operations="or")
 #                                           CREATE TABLE INPUT 
-'''
-table="test_table_of_connector"
+"""
+table="emp_data"
 n=int(input('number of attributes\n'))
 columns=[]
 primary_check=True
@@ -190,6 +217,7 @@ for i in range(n):
 
     temp=Column(name,datatype,length,[primary,null,inc])
     columns.append(temp)
-    
-wb.creatTable(table,columns)
-'''
+"""
+wb.custom()
+#wb.alter(tablename="emp_data",operation="DROP",columnname="test_column") 
+#wb.creatTable(table,columns)
